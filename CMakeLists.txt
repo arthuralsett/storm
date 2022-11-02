@@ -266,11 +266,6 @@ if (STORM_FORCE_POPCNT)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mpopcnt")
 endif()
 
-# TODO: remove forcing the old version of optional as soon as the related Spirit bug is fixed:
-# https://svn.boost.org/trac/boost/ticket/12349
-# Fix thanks to: https://github.com/freeorion/freeorion/issues/777
-add_definitions(-DBOOST_RESULT_OF_USE_DECLTYPE -DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
-
 #############################################################
 ##
 ##	Compiler specific settings
@@ -548,6 +543,8 @@ set(STORM_TARGETS "")
 add_subdirectory(src)
 
 export_option(STORM_HAVE_XERCES)
+export_option(STORM_HAVE_SPOT)
+export_option(STORM_HAVE_GUROBI)
 
 include(export)
 
