@@ -127,6 +127,8 @@ template class Z3LpSolverFactory<double>;
 template class Z3LpSolverFactory<storm::RationalNumber>;
 template std::unique_ptr<storm::solver::LpSolver<double>> getLpSolver(std::string const& name, storm::solver::LpSolverTypeSelection solvType);
 template std::unique_ptr<storm::solver::LpSolver<storm::RationalNumber>> getLpSolver(std::string const& name, storm::solver::LpSolverTypeSelection solvType);
+template std::unique_ptr<LpSolverFactory<double>> getLpSolverFactory(storm::solver::LpSolverTypeSelection solvType);
+template std::unique_ptr<LpSolverFactory<storm::RationalNumber>> getLpSolverFactory(storm::solver::LpSolverTypeSelection solvType);
 }  // namespace solver
 }  // namespace utility
 }  // namespace storm

@@ -4,12 +4,12 @@ register_source_groups_from_filestructure("${ALL_FILES}" storm-cmdp)
 
 
 
-file(GLOB_RECURSE STORM_PARS_SOURCES ${PROJECT_SOURCE_DIR}/src/storm-cmdp/*/*.cpp)
-file(GLOB_RECURSE STORM_PARS_HEADERS ${PROJECT_SOURCE_DIR}/src/storm-cmdp/*/*.h)
+file(GLOB_RECURSE STORM_CMDP_SOURCES ${PROJECT_SOURCE_DIR}/src/storm-cmdp/*/*.cpp)
+file(GLOB_RECURSE STORM_CMDP_HEADERS ${PROJECT_SOURCE_DIR}/src/storm-cmdp/*/*.h)
 
 
 # Create storm-cmdp.
-add_library(storm-cmdp SHARED ${STORM_PARS_SOURCES} ${STORM_PARS_HEADERS})
+add_library(storm-cmdp SHARED ${STORM_CMDP_SOURCES} ${STORM_CMDP_HEADERS})
 
 # Remove define symbol for shared libstorm.
 set_target_properties(storm-cmdp PROPERTIES DEFINE_SYMBOL "")
@@ -17,10 +17,10 @@ set_target_properties(storm-cmdp PROPERTIES DEFINE_SYMBOL "")
 list(APPEND STORM_TARGETS storm-cmdp)
 set(STORM_TARGETS ${STORM_TARGETS} PARENT_SCOPE)
 
-target_link_libraries(storm-cmdp PUBLIC storm ${STORM_PARS_LINK_LIBRARIES})
+target_link_libraries(storm-cmdp PUBLIC storm ${STORM_CMDP_LINK_LIBRARIES})
 
 # Install storm headers to include directory.
-foreach(HEADER ${STORM_PARS_HEADERS})
+foreach(HEADER ${STORM_CMDP_HEADERS})
 	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/src/?" "" RELATIVE_HEADER_PATH ${HEADER})
 	string(REGEX MATCH "(.*)[/\\]" RELATIVE_DIRECTORY ${RELATIVE_HEADER_PATH})
 	string(REGEX REPLACE "${RELATIVE_DIRECTORY}/?" "" HEADER_FILENAME ${RELATIVE_HEADER_PATH})
@@ -30,9 +30,9 @@ foreach(HEADER ${STORM_PARS_HEADERS})
 		COMMAND ${CMAKE_COMMAND} -E copy ${HEADER} ${CMAKE_BINARY_DIR}/include/${RELATIVE_DIRECTORY}${HEADER_FILENAME}
 		DEPENDS ${HEADER}
 	)
-	list(APPEND STORM_PARS_OUTPUT_HEADERS "${CMAKE_BINARY_DIR}/include/${RELATIVE_DIRECTORY}${HEADER_FILENAME}")
+    list(APPEND STORM_CMDP_OUTPUT_HEADERS "${CMAKE_BINARY_DIR}/include/${RELATIVE_DIRECTORY}${HEADER_FILENAME}")
 endforeach()
-add_custom_target(copy_storm_cmdp_headers DEPENDS ${STORM_PARS_OUTPUT_HEADERS} ${STORM_PARS_HEADERS})
+add_custom_target(copy_storm_cmdp_headers DEPENDS ${STORM_CMDP_OUTPUT_HEADERS} ${STORM_CMDP_HEADERS})
 add_dependencies(storm-cmdp copy_storm_cmdp_headers)
 
 # installation
