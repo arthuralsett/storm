@@ -30,6 +30,12 @@ namespace storm {
         typedef storm::cli::SymbolicInput SymbolicInput;
 
         void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
+            std::cout << "Hello, world.\n";
+            auto model = storm::cli::buildPreprocessExportModelWithValueTypeAndDdlib<storm::dd::DdType::CUDD, double>(input, mpi);
+            auto cmdp = model->template as<storm::models::sparse::Mdp<double>>();
+            std::cout << "cmdp->getNumberOfStates() = " << cmdp->getNumberOfStates() << '\n';
+            std::cout << "cmdp->getNumberOfTransitions() = " << cmdp->getNumberOfTransitions() << '\n';
+            std::cout << "cmdp->getNumberOfChoices() = " << cmdp->getNumberOfChoices() << '\n';
         }
 
         void processOptions() {
