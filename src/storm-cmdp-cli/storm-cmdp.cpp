@@ -25,6 +25,11 @@
 
 #include "storm-cmdp/settings/CmdpSettings.h"
 
+#include <vector>
+#include "storm-cmdp/extended-integer/ExtendedInteger.h"
+
+using ExtInt = util::ExtendedInteger;
+
 namespace storm {
     namespace cmdp {
         typedef storm::cli::SymbolicInput SymbolicInput;
@@ -36,6 +41,13 @@ namespace storm {
             std::cout << "cmdp->getNumberOfStates() = " << cmdp->getNumberOfStates() << '\n';
             std::cout << "cmdp->getNumberOfTransitions() = " << cmdp->getNumberOfTransitions() << '\n';
             std::cout << "cmdp->getNumberOfChoices() = " << cmdp->getNumberOfChoices() << '\n';
+
+            std::vector<ExtInt> minInitCons(cmdp->getNumberOfStates(), ExtInt::infinity());
+            std::cout << "minInitCons = {\n";
+            for (auto x : minInitCons) {
+                std::cout << x << "\n";
+            }
+            std::cout << "}\n";
         }
 
         void processOptions() {
