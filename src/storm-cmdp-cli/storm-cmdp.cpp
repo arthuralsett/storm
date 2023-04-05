@@ -28,7 +28,7 @@
 #include <vector>
 #include "storm-cmdp/extended-integer/ExtendedInteger.h"
 
-using ExtInt = util::ExtendedInteger;
+using ExtInt = storm::utility::ExtendedInteger;
 
 namespace storm {
     namespace cmdp {

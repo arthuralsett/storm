@@ -1,9 +1,9 @@
 #include "ExtendedInteger.h"
 #include <stdexcept>
 
-util::ExtendedInteger::ExtendedInteger(int value) :mIsInfinite{false}, value{value} {}
+storm::utility::ExtendedInteger::ExtendedInteger(int value) :mIsInfinite{false}, value{value} {}
 
-bool util::ExtendedInteger::operator< (const ExtendedInteger& rhs) const {
+bool storm::utility::ExtendedInteger::operator< (const ExtendedInteger& rhs) const {
     // For performance check this first, since most often finite values will be
     // compared.
     if (this->isFinite() && rhs.isFinite()) {
@@ -17,36 +17,36 @@ bool util::ExtendedInteger::operator< (const ExtendedInteger& rhs) const {
     }
 }
 
-bool util::ExtendedInteger::operator> (const ExtendedInteger& rhs) const {
+bool storm::utility::ExtendedInteger::operator> (const ExtendedInteger& rhs) const {
     return rhs < *this;
 }
 
-bool util::ExtendedInteger::operator<= (const ExtendedInteger& rhs) const {
+bool storm::utility::ExtendedInteger::operator<= (const ExtendedInteger& rhs) const {
     return !(*this > rhs);
 }
 
-bool util::ExtendedInteger::operator>= (const ExtendedInteger& rhs) const {
+bool storm::utility::ExtendedInteger::operator>= (const ExtendedInteger& rhs) const {
     return !(*this < rhs);
 }
 
-util::ExtendedInteger util::ExtendedInteger::operator- () const {
+storm::utility::ExtendedInteger storm::utility::ExtendedInteger::operator- () const {
     auto result = *this;
     result.value *= -1;
     return result;
 }
 
-bool util::ExtendedInteger::isFinite() const { return !this->mIsInfinite; }
+bool storm::utility::ExtendedInteger::isFinite() const { return !this->mIsInfinite; }
 
-bool util::ExtendedInteger::isInfinite() const { return this->mIsInfinite; }
+bool storm::utility::ExtendedInteger::isInfinite() const { return this->mIsInfinite; }
 
-int util::ExtendedInteger::getValue() const {
+int storm::utility::ExtendedInteger::getValue() const {
     if (this->mIsInfinite) {
         throw std::range_error("Cannot represent infinite value by an integer.");
     }
     return this->value;
 }
 
-int util::ExtendedInteger::sign() const {
+int storm::utility::ExtendedInteger::sign() const {
     if (this->value > 0) {
         return 1;
     } else if (this->value < 0) {
@@ -56,11 +56,11 @@ int util::ExtendedInteger::sign() const {
     }
 }
 
-util::ExtendedInteger util::ExtendedInteger::infinity() { return util::ExtendedInteger(true); }
+storm::utility::ExtendedInteger storm::utility::ExtendedInteger::infinity() { return storm::utility::ExtendedInteger(true); }
 
-util::ExtendedInteger::ExtendedInteger(bool isInfinite) :mIsInfinite{isInfinite}, value{1} {}
+storm::utility::ExtendedInteger::ExtendedInteger(bool isInfinite) :mIsInfinite{isInfinite}, value{1} {}
 
-std::ostream& operator<< (std::ostream& out, const util::ExtendedInteger& x) {
+std::ostream& operator<< (std::ostream& out, const storm::utility::ExtendedInteger& x) {
     if (x.isInfinite()) {
         return out << (x.sign() < 0 ? "-" : "") << "infinity";
     } else {
@@ -68,7 +68,7 @@ std::ostream& operator<< (std::ostream& out, const util::ExtendedInteger& x) {
     }
 }
 
-util::ExtendedInteger operator+ (const util::ExtendedInteger& lhs, const util::ExtendedInteger& rhs) {
+storm::utility::ExtendedInteger operator+ (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs) {
     if (lhs.isFinite() && rhs.isFinite()) {
         return lhs.getValue() + rhs.getValue();
     }
@@ -84,7 +84,7 @@ util::ExtendedInteger operator+ (const util::ExtendedInteger& lhs, const util::E
     }
 }
 
-bool operator== (const util::ExtendedInteger& lhs, const util::ExtendedInteger& rhs) {
+bool operator== (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs) {
     if (lhs.isFinite()) {
         return rhs.isFinite() && lhs.getValue() == rhs.getValue();
     } else {
