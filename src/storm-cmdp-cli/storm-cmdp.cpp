@@ -38,16 +38,61 @@ namespace storm {
             std::cout << "Hello, world.\n";
             auto model = storm::cli::buildPreprocessExportModelWithValueTypeAndDdlib<storm::dd::DdType::CUDD, double>(input, mpi);
             auto cmdp = model->template as<storm::models::sparse::Mdp<double>>();
-            std::cout << "cmdp->getNumberOfStates() = " << cmdp->getNumberOfStates() << '\n';
-            std::cout << "cmdp->getNumberOfTransitions() = " << cmdp->getNumberOfTransitions() << '\n';
-            std::cout << "cmdp->getNumberOfChoices() = " << cmdp->getNumberOfChoices() << '\n';
+            // std::cout << "cmdp->getNumberOfStates() = " << cmdp->getNumberOfStates() << '\n';
+            // std::cout << "cmdp->getNumberOfTransitions() = " << cmdp->getNumberOfTransitions() << '\n';
+            // std::cout << "cmdp->getNumberOfChoices() = " << cmdp->getNumberOfChoices() << '\n';
 
-            std::vector<ExtInt> minInitCons(cmdp->getNumberOfStates(), ExtInt::infinity());
-            std::cout << "minInitCons = {\n";
-            for (auto x : minInitCons) {
-                std::cout << x << "\n";
-            }
-            std::cout << "}\n";
+            std::vector<ExtInt> minInitConsApprox(cmdp->getNumberOfStates(), ExtInt::infinity());
+            // std::cout << "minInitConsApprox = {\n";
+            // for (auto x : minInitConsApprox) {
+            //     std::cout << x << "\n";
+            // }
+            // std::cout << "}\n";
+
+            const int numberOfActions = cmdp->getNumberOfChoices(0);
+            const auto transitionMatrix = cmdp->getTransitionMatrix();
+            auto costs = cmdp->getRewardModel("cost");
+            auto reloadStates = cmdp->getStates("reload");
+
+            auto minInitConsOldApprox = minInitConsApprox;
+            do {
+                minInitConsOldApprox = minInitConsApprox;
+                // Loop over states.
+                for (int s = 0; s < minInitConsApprox.size(); ++s) {
+                    // Minimum amount of fuel to guarantee reaching a reload state, where
+                    // the minimum is taken over all actions.
+                    auto costUntilReload = ExtInt::infinity();
+                    // Loop over actions.
+                    for (int a = 0; a < numberOfActions; ++a) {
+                        auto choiceIndex = cmdp->getChoiceIndex(storm::storage::StateActionPair(s, a));
+                        // Cost of taking action `a`. Mathematical notation: "C(s,a)".
+                        ExtInt costForThisStep(static_cast<int>(costs.getStateActionReward(choiceIndex)));
+
+                        // Probability distribution over the set of states.
+                        auto successorDistribution = transitionMatrix.getRow(s, a);
+
+                        // Amount of fuel needed to guarantee reaching a reload state *after*
+                        // taking action `a`. (Cost for action `a` excluded, hence "remaining".)
+                        ExtInt remainingCostUntilReload(0);
+                        // Loop over successors. `remainingCostUntilReload` becomes maximum.
+                        for (const auto& entry : successorDistribution) {
+                            size_t successor = entry.getColumn();
+                            double probability = entry.getValue();
+                            // First condition means `successor` is actually a successor.
+                            // Second condition means `successor` is not a reload state.
+                            if (probability > 0 && !reloadStates.get(successor) && minInitConsOldApprox.at(successor) > remainingCostUntilReload) {
+                                remainingCostUntilReload = minInitConsOldApprox.at(successor);
+                            }
+                        }
+                        if (costForThisStep + remainingCostUntilReload < costUntilReload) {
+                            costUntilReload = costForThisStep + remainingCostUntilReload;
+                        }
+                    }
+                    if (costUntilReload < minInitConsApprox.at(s)) {
+                        minInitConsApprox.at(s) = costUntilReload;
+                    }
+                }
+            } while (minInitConsApprox != minInitConsOldApprox);
         }
 
         void processOptions() {
