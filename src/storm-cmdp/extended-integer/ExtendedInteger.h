@@ -43,4 +43,8 @@ std::ostream& operator<< (std::ostream& out, const storm::utility::ExtendedInteg
 
 storm::utility::ExtendedInteger operator+ (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs);
 
-bool operator== (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs);
+namespace std {
+    bool operator== (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs);
+
+    bool operator!= (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs);
+}  // namespace std

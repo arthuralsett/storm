@@ -84,10 +84,14 @@ storm::utility::ExtendedInteger operator+ (const storm::utility::ExtendedInteger
     }
 }
 
-bool operator== (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs) {
+bool std::operator== (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs) {
     if (lhs.isFinite()) {
         return rhs.isFinite() && lhs.getValue() == rhs.getValue();
     } else {
         return rhs.isInfinite() && lhs.sign() == rhs.sign();
     }
+}
+
+bool std::operator!= (const storm::utility::ExtendedInteger& lhs, const storm::utility::ExtendedInteger& rhs) {
+    return !(lhs == rhs);
 }
