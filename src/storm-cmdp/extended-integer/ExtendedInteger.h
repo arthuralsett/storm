@@ -4,6 +4,8 @@ namespace storm {
     namespace utility {
         class ExtendedInteger {
             public:
+                ExtendedInteger();
+
                 ExtendedInteger(int value);
 
                 bool operator< (const ExtendedInteger& rhs) const;

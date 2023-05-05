@@ -1,6 +1,8 @@
 #include "ExtendedInteger.h"
 #include <stdexcept>
 
+storm::utility::ExtendedInteger::ExtendedInteger() :ExtendedInteger(0) {}
+
 storm::utility::ExtendedInteger::ExtendedInteger(int value) :mIsInfinite{false}, value{value} {}
 
 bool storm::utility::ExtendedInteger::operator< (const ExtendedInteger& rhs) const {

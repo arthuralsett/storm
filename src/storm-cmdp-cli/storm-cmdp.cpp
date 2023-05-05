@@ -27,6 +27,7 @@
 
 #include <vector>
 #include "storm-cmdp/algorithms/algorithms.h"
+#include "storm-cmdp/state-permutation/state-permutation.h"
 
 using ExtInt = storm::utility::ExtendedInteger;
 
@@ -42,10 +43,11 @@ namespace storm {
             // std::cout << "cmdp->getNumberOfTransitions() = " << cmdp->getNumberOfTransitions() << '\n';
             // std::cout << "cmdp->getNumberOfChoices() = " << cmdp->getNumberOfChoices() << '\n';
 
-            auto minInitConsApprox = computeMinInitCons(cmdp);
+            auto minInitConsWrongOrder = computeMinInitCons(cmdp);
 
-            std::cout << "minInitConsApprox = {\n";
-            for (auto x : minInitConsApprox) {
+            auto minInitCons = storm::utility::undoStatePermutation(minInitConsWrongOrder, cmdp);
+            std::cout << "minInitCons = {\n";
+            for (auto x : minInitCons) {
                 std::cout << x << "\n";
             }
             std::cout << "}\n";
