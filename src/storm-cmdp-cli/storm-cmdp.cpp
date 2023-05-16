@@ -35,6 +35,7 @@ namespace storm {
     namespace cmdp {
         typedef storm::cli::SymbolicInput SymbolicInput;
 
+        // Returns the capacity of the input CMDP.
         int getCapacity(const storm::prism::Program& inputProgramme) {
             if (!inputProgramme.hasConstant("capacity")) {
                 // TODO improve error handling.
