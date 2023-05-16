@@ -64,10 +64,9 @@ namespace storm {
             return storm::api::parseProgram(modelFileName, false, false);
         }
 
-        void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
-            auto inputProgramme = getInputProgramme();
-            const int capacity = getCapacity(inputProgramme);
-
+        // Returns the input CMDP (excluding the capacity).
+        std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>>
+        getInputCmdp(const storm::prism::Program& inputProgramme) {
             storm::builder::BuilderOptions buildOptions;
             buildOptions.setBuildStateValuations();
             buildOptions.setBuildChoiceLabels();
@@ -77,8 +76,13 @@ namespace storm {
             auto generator = std::make_shared<storm::generator::PrismNextStateGenerator<double, uint32_t>>(inputProgramme, buildOptions);
             storm::builder::ExplicitModelBuilder<double> mdpBuilder(generator);
             auto model = mdpBuilder.build();
+            return model->template as<storm::models::sparse::Mdp<double>>();
+        }
 
-            auto cmdp = model->template as<storm::models::sparse::Mdp<double>>();
+        void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
+            auto inputProgramme = getInputProgramme();
+            const int capacity = getCapacity(inputProgramme);
+            auto cmdp = getInputCmdp(inputProgramme);
 
             auto minInitConsWrongOrder = computeMinInitCons(cmdp);
 
