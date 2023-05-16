@@ -35,12 +35,12 @@ namespace storm {
     namespace cmdp {
         typedef storm::cli::SymbolicInput SymbolicInput;
 
-        int getCapacity(const storm::prism::Program& programme) {
-            if (!programme.hasConstant("capacity")) {
+        int getCapacity(const storm::prism::Program& inputProgramme) {
+            if (!inputProgramme.hasConstant("capacity")) {
                 // TODO improve error handling.
                 std::exit(EXIT_FAILURE);
             }
-            auto constantCap = programme.getConstant("capacity");
+            auto constantCap = inputProgramme.getConstant("capacity");
             if (!constantCap.isDefined()) {
                 // TODO improve error handling.
                 std::exit(EXIT_FAILURE);
@@ -53,15 +53,20 @@ namespace storm {
             return expr.evaluateAsInt();
         }
 
-        void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
+        // Returns object representing the input (referred to as a "programme").
+        storm::prism::Program getInputProgramme() {
             auto ioSettings = storm::settings::getModule<storm::settings::modules::IOSettings>();
             if (!ioSettings.isPrismInputSet()) {
                 // TODO improve error handling.
                 std::exit(EXIT_FAILURE);
             }
             auto modelFileName = ioSettings.getPrismInputFilename();
-            auto programme = storm::api::parseProgram(modelFileName, false, false);
-            const int capacity = getCapacity(programme);
+            return storm::api::parseProgram(modelFileName, false, false);
+        }
+
+        void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
+            auto inputProgramme = getInputProgramme();
+            const int capacity = getCapacity(inputProgramme);
 
             storm::builder::BuilderOptions buildOptions;
             buildOptions.setBuildStateValuations();
@@ -69,7 +74,7 @@ namespace storm {
             buildOptions.setBuildAllLabels();
             buildOptions.setBuildAllRewardModels();
 
-            auto generator = std::make_shared<storm::generator::PrismNextStateGenerator<double, uint32_t>>(programme, buildOptions);
+            auto generator = std::make_shared<storm::generator::PrismNextStateGenerator<double, uint32_t>>(inputProgramme, buildOptions);
             storm::builder::ExplicitModelBuilder<double> mdpBuilder(generator);
             auto model = mdpBuilder.build();
 
