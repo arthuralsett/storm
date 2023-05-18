@@ -1,6 +1,15 @@
 #include "storm-cmdp/algorithms/algorithms.h"
 
-std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp) {
+std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
+    std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp
+) {
+    return computeMinInitCons(cmdp, cmdp->getStates("reload"));
+}
+
+std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
+    std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+    storm::storage::BitVector newReloadStates
+) {
     using ExtInt = storm::utility::ExtendedInteger;
 
     std::vector<ExtInt> minInitConsApprox(cmdp->getNumberOfStates(), ExtInt::infinity());
@@ -8,7 +17,7 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(std
     const int numberOfActions = cmdp->getNumberOfChoices(0);
     const auto transitionMatrix = cmdp->getTransitionMatrix();
     auto costs = cmdp->getRewardModel("cost");
-    auto reloadStates = cmdp->getStates("reload");
+    auto reloadStates = newReloadStates;
 
     auto minInitConsOldApprox = minInitConsApprox;
     do {
