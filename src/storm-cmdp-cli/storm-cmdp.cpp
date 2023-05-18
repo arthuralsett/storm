@@ -86,13 +86,28 @@ namespace storm {
             auto cmdp = getInputCmdp(inputProgramme);
 
             auto minInitConsWrongOrder = computeMinInitCons(cmdp);
-
             auto minInitCons = storm::utility::undoStatePermutation(minInitConsWrongOrder, cmdp);
-            std::cout << "minInitCons = {\n";
-            for (auto x : minInitCons) {
-                std::cout << x << "\n";
-            }
-            std::cout << "}\n";
+
+            auto safeWrongOrder = computeSafe(cmdp, capacity);
+            auto safe = storm::utility::undoStatePermutation(safeWrongOrder, cmdp);
+
+            auto print_vec = [](const std::vector<ExtInt>& v) {
+                if (v.size() == 0) {
+                    std::cout << "{}\n";
+                    return;
+                }
+                std::cout << '{' << v.at(0);
+                for (int i = 1; i < v.size(); ++i) {
+                    std::cout << ' ' << v.at(i);
+                }
+                std::cout << "}\n";
+            };
+
+            std::cout << "capacity = " << capacity << '\n';
+            std::cout << "minInitCons = ";
+            print_vec(minInitCons);
+            std::cout << "safe = ";
+            print_vec(safe);
         }
 
         void processOptions() {
