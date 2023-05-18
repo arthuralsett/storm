@@ -61,3 +61,37 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
 
     return minInitConsApprox;
 }
+
+std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeSafe(
+    std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+    int capacity
+) {
+    using ExtInt = storm::utility::ExtendedInteger;
+    // Initially the set of reload states, but certain reload states will be "removed".
+    auto rel = cmdp->getStates("reload");
+    const int numberOfStates = cmdp->getNumberOfStates();
+    std::vector<ExtInt> minInitCons(numberOfStates);
+
+    bool madeChange = false;
+    do {
+        madeChange = false;
+        minInitCons = computeMinInitCons(cmdp, rel);
+        for (int s = 0; s < numberOfStates; ++s) {
+            if (rel.get(s)) {
+                // `s` is in `rel`.
+                if (minInitCons.at(s) > capacity) {
+                    rel.set(s, false);  // Remove `s` from `rel`.
+                    madeChange = true;
+                }
+            }
+        }
+    } while (madeChange);
+
+    auto out = minInitCons;
+    for (int s = 0; s < numberOfStates; ++s) {
+        if (out.at(s) > capacity) {
+            out.at(s) = ExtInt::infinity();
+        }
+    }
+    return out;
+}

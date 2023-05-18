@@ -16,5 +16,11 @@ namespace storm {
             std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
             storm::storage::BitVector newReloadStates
         );
+
+        // Compute Safe for `cmdp`.
+        std::vector<storm::utility::ExtendedInteger> computeSafe(
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            int capacity
+        );
     }  // namespace cmdp
 }  // namespace storm
