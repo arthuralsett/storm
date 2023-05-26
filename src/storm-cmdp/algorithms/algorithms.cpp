@@ -89,7 +89,9 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeSafe(
 
     auto out = minInitCons;
     for (int s = 0; s < numberOfStates; ++s) {
-        if (out.at(s) > capacity) {
+        if (rel.get(s)) {
+            out.at(s) = 0;
+        } else if (out.at(s) > capacity) {
             out.at(s) = ExtInt::infinity();
         }
     }
