@@ -3,6 +3,19 @@
 namespace storm {
     namespace cmdp {
         // Helper function: not declared in header.
+        // Returns the cost of taking `action` at `state`. Mathematical notation: "C(state, action)".
+        storm::utility::ExtendedInteger cost(
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            int state,
+            int action
+        ) {
+            auto costs = cmdp->getRewardModel("cost");
+            auto choiceIndex = cmdp->getChoiceIndex(storm::storage::StateActionPair(state, action));
+            int cost = costs.getStateActionReward(choiceIndex);
+            return storm::utility::ExtendedInteger(cost);
+        }
+
+        // Helper function: not declared in header.
         // Returns the maximum energy level `resourceLevels[t]` where `t` is
         // a potential successor if taking `action` at `state`.
         storm::utility::ExtendedInteger maxOverSuccessors(
@@ -41,7 +54,6 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
 
     const int numberOfStates = cmdp->getNumberOfStates();
     const int numberOfActions = cmdp->getNumberOfChoices(0);
-    auto costs = cmdp->getRewardModel("cost");
     auto reloadStates = newReloadStates;
 
     std::vector<ExtInt> minInitConsApprox(numberOfStates, ExtInt::infinity());
@@ -55,9 +67,7 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
             auto costUntilReload = ExtInt::infinity();
             // Loop over actions.
             for (int a = 0; a < numberOfActions; ++a) {
-                auto choiceIndex = cmdp->getChoiceIndex(storm::storage::StateActionPair(s, a));
-                // Cost of taking action `a`. Mathematical notation: "C(s,a)".
-                ExtInt costForThisStep(static_cast<int>(costs.getStateActionReward(choiceIndex)));
+                ExtInt costForThisStep = cost(cmdp, s, a);
 
                 // Apply truncation operator to `minInitConsOldApprox`.
                 auto truncatedMinInitConsOldApprox = minInitConsOldApprox;
