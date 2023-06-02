@@ -1,4 +1,5 @@
 #include "storm-cmdp/algorithms/algorithms.h"
+#include <functional>
 
 namespace storm {
     namespace cmdp {
@@ -16,6 +17,39 @@ namespace storm {
         }
 
         // Helper function: not declared in header.
+        // Returns the value `x` such that `compare(getValueForSuccessor(t), x)` is
+        // false for all successors `t` of taking `action` at `state`.
+        // If `compare` implements "<" then never `getValueForSuccessor(t) < x` so `x` is the minimum.
+        storm::utility::ExtendedInteger overSuccessors(
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            int state,
+            int action,
+            std::function<bool(storm::utility::ExtendedInteger, storm::utility::ExtendedInteger)> compare,
+            std::function<storm::utility::ExtendedInteger(int)> getValueForSuccessor
+        ) {
+            storm::utility::ExtendedInteger result;
+            bool firstSuccessor = true;
+            // Probability distribution over the set of states.
+            auto successorDistribution = cmdp->getTransitionMatrix().getRow(state, action);
+
+            for (const auto& entry : successorDistribution) {
+                size_t successor = entry.getColumn();
+                double probability = entry.getValue();
+                if (probability > 0) {
+                    // `successor` is actually a successor.
+                    auto valueForSuccessor = getValueForSuccessor(successor);
+                    if (firstSuccessor) {
+                        result = valueForSuccessor;
+                        firstSuccessor = false;
+                    } else if (compare(valueForSuccessor, result)) {
+                        result = valueForSuccessor;
+                    }
+                }
+            }
+            return result;
+        }
+
+        // Helper function: not declared in header.
         // Returns the maximum energy level `resourceLevels[t]` where `t` is
         // a potential successor if taking `action` at `state`.
         storm::utility::ExtendedInteger maxOverSuccessors(
@@ -24,18 +58,11 @@ namespace storm {
             int action,
             const std::vector<storm::utility::ExtendedInteger>& resourceLevels
         ) {
-            storm::utility::ExtendedInteger max(0);
-            // Probability distribution over the set of states.
-            auto successorDistribution = cmdp->getTransitionMatrix().getRow(state, action);
-            for (const auto& entry : successorDistribution) {
-                size_t successor = entry.getColumn();
-                double probability = entry.getValue();
-                // First condition means `successor` is actually a successor.
-                if (probability > 0 && resourceLevels.at(successor) > max) {
-                    max = resourceLevels.at(successor);
+            return overSuccessors(cmdp, state, action, std::greater{},
+                [&resourceLevels](int successor) {
+                    return resourceLevels.at(successor);
                 }
-            }
-            return max;
+            );
         }
     }  // namespace cmdp
 }  // namespace storm
