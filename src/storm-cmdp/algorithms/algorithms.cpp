@@ -22,7 +22,7 @@ namespace storm {
             std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
             int state,
             int action,
-            std::vector<storm::utility::ExtendedInteger> resourceLevels
+            const std::vector<storm::utility::ExtendedInteger>& resourceLevels
         ) {
             storm::utility::ExtendedInteger max(0);
             // Probability distribution over the set of states.
