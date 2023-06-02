@@ -20,9 +20,9 @@ namespace storm {
         // a potential successor if taking `action` at `state`.
         storm::utility::ExtendedInteger maxOverSuccessors(
             std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
-            std::vector<storm::utility::ExtendedInteger> resourceLevels,
             int state,
-            int action
+            int action,
+            std::vector<storm::utility::ExtendedInteger> resourceLevels
         ) {
             storm::utility::ExtendedInteger max(0);
             // Probability distribution over the set of states.
@@ -78,7 +78,7 @@ std::vector<storm::utility::ExtendedInteger> storm::cmdp::computeMinInitCons(
                 }
                 // Amount of fuel needed to guarantee reaching a reload state *after*
                 // taking action `a`. (Cost for action `a` excluded, hence "remaining".)
-                auto remainingCostUntilReload = maxOverSuccessors(cmdp, truncatedMinInitConsOldApprox, s, a);
+                auto remainingCostUntilReload = maxOverSuccessors(cmdp, s, a, truncatedMinInitConsOldApprox);
 
                 if (costForThisStep + remainingCostUntilReload < costUntilReload) {
                     costUntilReload = costForThisStep + remainingCostUntilReload;
