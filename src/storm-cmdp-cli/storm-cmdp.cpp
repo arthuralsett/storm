@@ -25,6 +25,7 @@
 
 #include "storm-cmdp/settings/CmdpSettings.h"
 
+#include <tuple>
 #include <vector>
 #include "storm-cmdp/algorithms/algorithms.h"
 #include "storm-cmdp/state-permutation/state-permutation.h"
@@ -91,6 +92,14 @@ namespace storm {
             auto safeWrongOrder = computeSafe(cmdp, capacity);
             auto safe = storm::utility::undoStatePermutation(safeWrongOrder, cmdp);
 
+            // TODO should probably read this from PRISM file instead.
+            storm::storage::BitVector targetStates(cmdp->getNumberOfStates());
+            targetStates.set(1, true);
+            std::vector<ExtInt> safePrWrongOrder;
+            storm::cmdp::CounterSelector counterSelector;
+            std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity, targetStates);
+            auto safePr = storm::utility::undoStatePermutation(safePrWrongOrder, cmdp);
+
             auto print_vec = [](const std::vector<ExtInt>& v) {
                 if (v.size() == 0) {
                     std::cout << "{}\n";
@@ -108,6 +117,8 @@ namespace storm {
             print_vec(minInitCons);
             std::cout << "safe = ";
             print_vec(safe);
+            std::cout << "safePr = ";
+            print_vec(safePr);
         }
 
         void processOptions() {
