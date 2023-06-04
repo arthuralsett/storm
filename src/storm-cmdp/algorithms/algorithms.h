@@ -35,8 +35,7 @@ namespace storm {
         // Compute SafePR for `cmdp` and a corresponding counter selector.
         std::pair<std::vector<storm::utility::ExtendedInteger>, storm::cmdp::CounterSelector> computeSafePr(
             std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
-            int capacity,
-            storm::storage::BitVector targetStates
+            int capacity
         );
     }  // namespace cmdp
 }  // namespace storm

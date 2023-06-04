@@ -92,12 +92,9 @@ namespace storm {
             auto safeWrongOrder = computeSafe(cmdp, capacity);
             auto safe = storm::utility::undoStatePermutation(safeWrongOrder, cmdp);
 
-            // TODO should probably read this from PRISM file instead.
-            storm::storage::BitVector targetStates(cmdp->getNumberOfStates());
-            targetStates.set(1, true);
             std::vector<ExtInt> safePrWrongOrder;
             storm::cmdp::CounterSelector counterSelector;
-            std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity, targetStates);
+            std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity);
             auto safePr = storm::utility::undoStatePermutation(safePrWrongOrder, cmdp);
 
             auto print_vec = [](const std::vector<ExtInt>& v) {

@@ -268,14 +268,14 @@ std::vector<int> storm::cmdp::getSafeActions(
 
 std::pair<std::vector<storm::utility::ExtendedInteger>, storm::cmdp::CounterSelector> storm::cmdp::computeSafePr(
     std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
-    int capacity,
-    storm::storage::BitVector targetStates
+    int capacity
 ) {
     using ExtInt = storm::utility::ExtendedInteger;
 
     const int numberOfStates = cmdp->getNumberOfStates();
     const int numberOfActions = cmdp->getNumberOfChoices(0);
     auto reloadStates = cmdp->getStates("reload");
+    auto targetStates = cmdp->getStates("target");
     std::vector<ExtInt> safePrApprox(numberOfStates, ExtInt::infinity());
     auto safe = computeSafe(cmdp, capacity);
     auto safeActions = getSafeActions(cmdp, safe, capacity);
