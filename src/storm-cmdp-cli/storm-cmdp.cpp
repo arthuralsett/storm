@@ -116,6 +116,10 @@ namespace storm {
             print_vec(safe);
             std::cout << "safePr = ";
             print_vec(safePr);
+
+            // Probably wrong order:
+            std::cout << "counterSelector =\n";
+            printCounterSelector(std::cout, counterSelector, cmdp, capacity);
         }
 
         void processOptions() {

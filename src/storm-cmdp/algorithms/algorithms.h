@@ -4,7 +4,7 @@
 #include "storm/models/sparse/Mdp.h"
 
 #include "storm-cmdp/extended-integer/ExtendedInteger.h"
-#include "storm-cmdp/CounterSelector.h"
+#include "storm-cmdp/counter-selector/CounterSelector.h"
 
 namespace storm {
     namespace cmdp {
