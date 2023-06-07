@@ -138,9 +138,9 @@ namespace storm {
             const std::vector<storm::utility::ExtendedInteger>& resourceLevels
         ) {
             const int numberOfActions = cmdp->getNumberOfChoices(0);
-            int argMin;  // An action.
-            storm::utility::ExtendedInteger minSprVal;
-            for (int a = 0; a < numberOfActions; ++a) {
+            int argMin = 0;  // An action.
+            storm::utility::ExtendedInteger minSprVal = computeSprVal(cmdp, safe, state, argMin, resourceLevels);
+            for (int a = 1; a < numberOfActions; ++a) {
                 auto sprVal = computeSprVal(cmdp, safe, state, a, resourceLevels);
                 if (sprVal < minSprVal) {
                     argMin = a;
