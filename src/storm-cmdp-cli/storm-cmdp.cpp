@@ -25,9 +25,12 @@
 
 #include "storm-cmdp/settings/CmdpSettings.h"
 
+#include <fstream>
+#include <ostream>
 #include <tuple>
 #include <vector>
 #include "storm-cmdp/algorithms/algorithms.h"
+#include "storm-cmdp/TeeStream.h"
 #include "storm-cmdp/state-permutation/state-permutation.h"
 
 using ExtInt = storm::utility::ExtendedInteger;
@@ -86,6 +89,11 @@ namespace storm {
             const int capacity = getCapacity(inputProgramme);
             auto cmdp = getInputCmdp(inputProgramme);
 
+            // TODO get filename from commandline arguments.
+            std::ofstream outfile("storm-cmdp-output.txt");
+            // "S" for "standard", "f" for "file".
+            storm::utility::TeeStream sfout(std::cout, outfile);
+
             auto minInitConsWrongOrder = computeMinInitCons(cmdp);
             auto minInitCons = storm::utility::undoStatePermutation(minInitConsWrongOrder, cmdp);
 
@@ -97,29 +105,29 @@ namespace storm {
             std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity);
             auto safePr = storm::utility::undoStatePermutation(safePrWrongOrder, cmdp);
 
-            auto print_vec = [](const std::vector<ExtInt>& v) {
+            auto print_vec = [](const std::vector<ExtInt>& v, std::ostream& out) {
                 if (v.size() == 0) {
-                    std::cout << "{}\n";
+                    out << "{}\n";
                     return;
                 }
-                std::cout << '{' << v.at(0);
+                out << '{' << v.at(0);
                 for (int i = 1; i < v.size(); ++i) {
-                    std::cout << ' ' << v.at(i);
+                    out << ' ' << v.at(i);
                 }
-                std::cout << "}\n";
+                out << "}\n";
             };
 
-            std::cout << "capacity = " << capacity << '\n';
-            std::cout << "minInitCons = ";
-            print_vec(minInitCons);
-            std::cout << "safe = ";
-            print_vec(safe);
-            std::cout << "safePr = ";
-            print_vec(safePr);
+            sfout << "capacity = " << capacity << '\n';
+            sfout << "minInitCons = ";
+            print_vec(minInitCons, sfout);
+            sfout << "safe = ";
+            print_vec(safe, sfout);
+            sfout << "safePr = ";
+            print_vec(safePr, sfout);
 
             // Probably wrong order:
-            std::cout << "counterSelector =\n";
-            printCounterSelector(std::cout, counterSelector, cmdp, capacity);
+            sfout << "counterSelector =\n";
+            printCounterSelector(sfout, counterSelector, cmdp, capacity);
         }
 
         void processOptions() {

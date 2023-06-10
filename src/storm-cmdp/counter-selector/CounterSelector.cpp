@@ -14,27 +14,27 @@ void storm::cmdp::printCounterSelector(
     int otherColumnWidth = std::max(len(capacity), len(cmdp->getNumberOfChoices(0) - 1));
     std::string fill(stateColumnWidth, ' ');
     // Header.
-    std::cout << fill << " resource levels:\n"
+    out << fill << " resource levels:\n"
         << fill;
     // Print values of the resource levels.
     for (int rl = 0; rl <= capacity; ++rl) {
-        std::cout << ' ' << std::setw(otherColumnWidth) << rl;
+        out << ' ' << std::setw(otherColumnWidth) << rl;
     }
-    std::cout << '\n';
+    out << '\n';
     // Header.
-    std::cout << std::setw(stateColumnWidth) << 's' << " actions:\n";
+    out << std::setw(stateColumnWidth) << 's' << " actions:\n";
     // Values of states and actions.
     for (int s = 0; s < counterSelector.size(); ++s) {
-        std::cout << std::setw(stateColumnWidth) << s;
+        out << std::setw(stateColumnWidth) << s;
         for (int rl = 0; rl <= capacity; ++rl) {
             int action = counterSelector.at(s).at(rl);
-            std::cout << ' ' << std::setw(otherColumnWidth);
+            out << ' ' << std::setw(otherColumnWidth);
             if (action == storm::cmdp::undefinedAction) {
-                std::cout << '-';
+                out << '-';
             } else {
-                std::cout << action;
+                out << action;
             }
         }
-        std::cout << '\n';
+        out << '\n';
     }
 }
