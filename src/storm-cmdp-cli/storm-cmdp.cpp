@@ -84,6 +84,26 @@ namespace storm {
             return model->template as<storm::models::sparse::Mdp<double>>();
         }
 
+        // Prints the following to `out` on separate lines:
+        // - `name`;
+        // - the elements of `vec`, space-separated;
+        // - "<seconds>.<milliseconds>s"; and
+        // - number of nanoseconds.
+        // (The latter two according to `stopwatch`.)
+        template<typename T>
+        void showResult(std::ostream& out, const std::string& name, const std::vector<T>& vec, storm::utility::Stopwatch stopwatch) {
+            out << name << '\n';
+            if (vec.size() > 0) {
+                out << vec.at(0);
+                for (int i = 1; i < vec.size(); ++i) {
+                    out << ' ' << vec.at(i);
+                }
+            }
+            out << '\n';
+            out << stopwatch << '\n';
+            out << stopwatch.getTimeInNanoseconds() << '\n';
+        }
+
         void processInput(SymbolicInput &input, storm::cli::ModelProcessingInformation& mpi) {
             auto inputProgramme = getInputProgramme();
             const int capacity = getCapacity(inputProgramme);
@@ -94,40 +114,32 @@ namespace storm {
             // "S" for "standard", "f" for "file".
             storm::utility::TeeStream sfout(std::cout, outfile);
 
+            storm::utility::Stopwatch minInitConsTimer(true);
             auto minInitConsWrongOrder = computeMinInitCons(cmdp);
+            minInitConsTimer.stop();
             auto minInitCons = storm::utility::undoStatePermutation(minInitConsWrongOrder, cmdp);
 
+            storm::utility::Stopwatch safeTimer(true);
             auto safeWrongOrder = computeSafe(cmdp, capacity);
+            safeTimer.stop();
             auto safe = storm::utility::undoStatePermutation(safeWrongOrder, cmdp);
 
             std::vector<ExtInt> safePrWrongOrder;
             storm::cmdp::CounterSelector counterSelector;
+            storm::utility::Stopwatch safePrTimer(true);
             std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity);
+            safePrTimer.stop();
             auto safePr = storm::utility::undoStatePermutation(safePrWrongOrder, cmdp);
 
-            auto print_vec = [](const std::vector<ExtInt>& v, std::ostream& out) {
-                if (v.size() == 0) {
-                    out << "{}\n";
-                    return;
-                }
-                out << '{' << v.at(0);
-                for (int i = 1; i < v.size(); ++i) {
-                    out << ' ' << v.at(i);
-                }
-                out << "}\n";
-            };
+            std::cout << "capacity = " << capacity << '\n';
 
-            sfout << "capacity = " << capacity << '\n';
-            sfout << "minInitCons = ";
-            print_vec(minInitCons, sfout);
-            sfout << "safe = ";
-            print_vec(safe, sfout);
-            sfout << "safePr = ";
-            print_vec(safePr, sfout);
+            showResult(sfout, "MinInitCons", minInitCons, minInitConsTimer);
+            showResult(sfout, "Safe", safe, safeTimer);
+            showResult(sfout, "SafePR", safePr, safePrTimer);
 
             // Probably wrong order:
-            sfout << "counterSelector =\n";
-            printCounterSelector(sfout, counterSelector, cmdp, capacity);
+            std::cout << "counterSelector =\n";
+            printCounterSelector(std::cout, counterSelector, cmdp, capacity);
         }
 
         void processOptions() {
