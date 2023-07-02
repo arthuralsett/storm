@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <functional>
 #include <optional>
+#include "storm/storage/SparseMatrix.h"
 
 namespace storm {
     namespace cmdp {
@@ -148,6 +149,105 @@ namespace storm {
                 }
             }
             return argMin;
+        }
+
+        // Returns which action the agent should take next according to
+        // `counterSelector` if the agent is in `state` with
+        // `resourceLevel` units of energy. If the selection rule corresponding
+        // to `state` has no value <= `resourceLevel` for which it is "defined"
+        // (not bottom) then the default action is zero. (Reason for this
+        // choice: there is always at least one action, so the action zero
+        // always exists.)
+        int getNextAction(
+            const storm::cmdp::CounterSelector& counterSelector,
+            int state,
+            int resourceLevel
+        ) {
+            auto selectionRule = counterSelector.at(state);
+            // Want to find greatest `x` with defined value, so start from top
+            // and decrement.
+            for (int x = resourceLevel; x >= 0; --x) {
+                int nextAction = selectionRule.at(x);
+                if (nextAction != storm::cmdp::undefinedAction) {
+                    return nextAction;
+                }
+            }
+            // Didn't find x <= `resourceLevel` with defined value, so return
+            // default action.
+            return 0;
+        }
+
+        // Returns the state that corresponds to the
+        // pair (`originalState`, `currentResourceLevel`).
+        int getStateWithBuiltInResourceLevel(
+            int originalState,
+            int currentResourceLevel,
+            int numberOfResourceLevels
+        ) {
+            return originalState * numberOfResourceLevels + currentResourceLevel;
+        }
+
+        // When creating a CMDP with states that correspond to
+        // pairs (state, resource level), this function returns an integer
+        // one-past-the-last (normal) state, representing a state where the
+        // agent has no resource left.
+        int getStateWithZeroResource(
+            int numberOfStates,
+            int capacity
+        ) {
+            return getStateWithBuiltInResourceLevel(numberOfStates - 1, capacity + 1);
+        }
+
+        // Returns a transition matrix with states that conceptually correspond
+        // to pairs (s, rl) where s is a state from `cmdp` and rl is a resource
+        // level with 0 <= rl <= `capacity`. The transitions correspond to what
+        // `counterSelector` would choose.
+        storm::storage::SparseMatrix<double> getTransitionMatrixAccordingToCounterSelector(
+            const storm::cmdp::CounterSelector& counterSelector,
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            int capacity
+        ) {
+            const int numberOfStates = cmdp->getNumberOfStates();
+            const int numberOfResoureLevels = capacity + 1;
+            const int newNumberOfStates = numberOfStates * numberOfResoureLevels + 1;
+            storm::storage::SparseMatrixBuilder<double> matrixBuilder(newNumberOfStates, newNumberOfStates);
+            const int stateWithZeroResource = getStateWithZeroResource(numberOfStates, capacity);
+            auto reloadStates = cmdp->getStates("reload");
+
+            // States from original CMDP.
+            for (int state = 0; state < numberOfStates; ++state) {
+                bool leavingReloadState = reloadStates.get(state);
+                // Possible resource levels.
+                for (int resLvl = 0; resLvl <= capacity; ++resLvl) {
+                    const int newState = getStateWithBuiltInResourceLevel(state, resLvl, numberOfResoureLevels);
+                    auto action = getNextAction(counterSelector, state, resLvl);
+                    auto cost = storm::cmdp::cost(cmdp, state, action);
+                    int nextResourceLevel = leavingReloadState ? (capacity - cost) : (resLvl - cost);
+
+                    if (nextResourceLevel < 0) {
+                        matrixBuilder.addNextValue(newState, stateWithZeroResource, 1);
+                    } else {
+                        // Probability distribution over the set of states.
+                        auto successorDistribution = cmdp->getTransitionMatrix().getRow(state, action);
+
+                        // Successor states from original CMDP.
+                        for (const auto& entry : successorDistribution) {
+                            size_t successor = entry.getColumn();
+                            double probability = entry.getValue();
+                            if (probability > 0) {
+                                // `successor` is actually a successor.
+
+                                auto newSuccessor = getStateWithBuiltInResourceLevel(successor, nextResourceLevel, numberOfResoureLevels);
+                                matrixBuilder.addNextValue(newState, newSuccessor, probability);
+                            }
+                        }
+                    }
+                }
+            }
+            // When no resource left, it stays that way forever.
+            matrixBuilder.addNextValue(stateWithZeroResource, stateWithZeroResource, 1);
+            // TODO maybe call `makeRowGroupingTrivial()`.
+            return matrixBuilder.build();
         }
     }  // namespace cmdp
 }  // namespace storm
