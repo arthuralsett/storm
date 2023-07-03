@@ -249,6 +249,36 @@ namespace storm {
             // TODO maybe call `makeRowGroupingTrivial()`.
             return matrixBuilder.build();
         }
+
+        // Returns a `StateLabeling` indicating target states for an MDP with
+        // states representing pairs (s, rl) where s is a state from `cmdp` and
+        // rl a resource level. The returned `StateLabeling` doesn't label
+        // reload states, because the recharging mechanics are built into the
+        // transitions of the new MDP.
+        storm::models::sparse::StateLabeling getStateLabellingForBuiltInResourceLevels(
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            int capacity
+        ) {
+            const int numberOfStates = cmdp->getNumberOfStates();
+            const int numberOfResoureLevels = capacity + 1;
+            const int newNumberOfStates = numberOfStates * numberOfResoureLevels + 1;
+            storm::models::sparse::StateLabeling stateLabelling(newNumberOfStates);
+            const std::string targetLabel = "target";
+            auto targetStates = cmdp->getStates(targetLabel);
+            stateLabelling.addLabel(targetLabel);
+
+            // States from original CMDP.
+            for (int state = 0; state < numberOfStates; ++state) {
+                // Possible resource levels.
+                for (int resLvl = 0; resLvl <= capacity; ++resLvl) {
+                    if (targetStates.get(state)) {
+                        const int newState = getStateWithBuiltInResourceLevel(state, resLvl, numberOfResoureLevels);
+                        stateLabelling.addLabelToState(targetLabel, newState);
+                    }
+                }
+            }
+            return stateLabelling;
+        }
     }  // namespace cmdp
 }  // namespace storm
 
