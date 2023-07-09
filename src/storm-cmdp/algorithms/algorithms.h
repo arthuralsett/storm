@@ -37,5 +37,17 @@ namespace storm {
             std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
             int capacity
         );
+
+        // Returns true iff `counterSelector` ensures for each state `s` with
+        // `safePr[s] <= capacity`, that when the agent starts in `s` with
+        // `safePr[s]` initial energy, the agent
+        // - reaches a target state with non-zero probability and
+        // - never runs out of energy.
+        bool validateCounterSelector(
+            const storm::cmdp::CounterSelector& counterSelector,
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            const std::vector<storm::utility::ExtendedInteger>& safePr,
+            int capacity
+        );
     }  // namespace cmdp
 }  // namespace storm

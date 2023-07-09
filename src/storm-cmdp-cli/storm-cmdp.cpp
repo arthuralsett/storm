@@ -140,6 +140,10 @@ namespace storm {
             // Probably wrong order:
             std::cout << "counterSelector =\n";
             printCounterSelector(std::cout, counterSelector, cmdp, capacity);
+
+            bool counterSelectorGood = validateCounterSelector(counterSelector, cmdp, safePrWrongOrder, capacity);
+            sfout << "Counter selector satisfies requirements:\n"
+                << std::boolalpha << counterSelectorGood << '\n';
         }
 
         void processOptions() {

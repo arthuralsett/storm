@@ -2,6 +2,13 @@
 #include <algorithm>
 #include <functional>
 #include <optional>
+#include "storm/environment/Environment.h"
+#include "storm/logic/AtomicLabelFormula.h"
+#include "storm/logic/EventuallyFormula.h"
+#include "storm/modelchecker/prctl/SparseMdpPrctlModelChecker.h"
+#include "storm/modelchecker/results/CheckResult.h"
+#include "storm/modelchecker/results/ExplicitQuantitativeCheckResult.h"
+#include "storm/solver/OptimizationDirection.h"
 #include "storm/storage/SparseMatrix.h"
 
 namespace storm {
@@ -464,4 +471,69 @@ std::pair<std::vector<storm::utility::ExtendedInteger>, storm::cmdp::CounterSele
     } while (safePrOldApprox != safePrApprox);
 
     return {safePrApprox, counterSelector};
+}
+
+bool storm::cmdp::validateCounterSelector(
+    const storm::cmdp::CounterSelector& counterSelector,
+    std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+    const std::vector<storm::utility::ExtendedInteger>& safePr,
+    const int capacity
+) {
+    using ExtInt = storm::utility::ExtendedInteger;
+    const int numberOfStates = cmdp->getNumberOfStates();
+    const int numberOfResourceLevels = capacity + 1;
+
+    // Transform `cmdp` into an MDP with states that conceptually correspond to
+    // pairs (s, rl) where s is a state from `cmdp` and rl is a resource level
+    // with 0 <= rl <= `capacity`. The transitions correspond to what
+    // `counterSelector` would choose.
+    auto transitionMatrix = getTransitionMatrixAccordingToCounterSelector(counterSelector, cmdp, capacity);
+    auto stateLabelling = getStateLabellingForBuiltInResourceLevels(cmdp, capacity);
+    storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>
+    transformedMdp(transitionMatrix, stateLabelling);
+
+    storm::modelchecker::SparseMdpPrctlModelChecker checker(transformedMdp);
+
+    auto isTarget = std::make_shared<storm::logic::AtomicLabelFormula>("target");
+    storm::logic::EventuallyFormula formulaForTarget(isTarget);
+    storm::modelchecker::CheckTask<storm::logic::EventuallyFormula> checkReachTarget(formulaForTarget);
+    // Shouldn't make a difference because there are no choices. There is only
+    // one action in each state. But some function below requires this.
+    checkReachTarget.setOptimizationDirection(storm::solver::OptimizationDirection::Maximize);
+
+    auto genericResultReachTarget = checker.computeReachabilityProbabilities(storm::Environment{}, checkReachTarget);
+    if (!genericResultReachTarget->isExplicitQuantitativeCheckResult()) {
+        throw storm::exceptions::BaseException("Expected ExplicitQuantitativeCheckResult.");
+    }
+    auto resultReachTarget = genericResultReachTarget->asExplicitQuantitativeCheckResult<double>();
+
+    // These two variables indicate whether the counter selector ensures that
+    // for each state s with "SafePR(s)" <= `capacity`, ...
+    // ... the probability of reaching target state is not zero. Assume true and
+    // look for counter-example.
+    bool countSelEnsuresTarget = true;
+    // ... the agent never runs out of energy. Assume true like above.
+    bool countSelEnsuresResource = true;
+
+    bool counterExampleForBoth;
+    auto infinity = ExtInt::infinity();
+    // Loop over states from original CMDP. Stop when we have a counter-example
+    // for resource and target.
+    for (int s = 0; s < numberOfStates && !counterExampleForBoth; ++s) {
+        // If value is infinity, we don't need to check anything.
+        if (safePr.at(s) < infinity) {
+            // Need to know that the counter selector satisfies the requirements
+            // if agent starts with enough energy. Enough energy for s is
+            // "SafePR(s)".
+            auto transformedState = getStateWithBuiltInResourceLevel(s, safePr.at(s).getValue(), numberOfResourceLevels);
+            auto targetProbability = resultReachTarget[transformedState];
+            if (targetProbability <= 0) {
+                countSelEnsuresTarget = false;
+            }
+            // TODO check that probability of running out of energy is zero for
+            // states s with "SafePR(s)" < `ExtInt::infinity()`.
+        }
+        counterExampleForBoth = !countSelEnsuresTarget && !countSelEnsuresResource;
+    }
+    return countSelEnsuresTarget && countSelEnsuresResource;
 }

@@ -44,10 +44,10 @@ namespace storm {
             //storm::settings::addModule<storm::settings::modules::GmmxxEquationSolverSettings>();
             //storm::settings::addModule<storm::settings::modules::EigenEquationSolverSettings>();
             //storm::settings::addModule<storm::settings::modules::NativeEquationSolverSettings>();
-            //storm::settings::addModule<storm::settings::modules::TopologicalEquationSolverSettings>();
+            storm::settings::addModule<storm::settings::modules::TopologicalEquationSolverSettings>();
             //storm::settings::addModule<storm::settings::modules::EliminationSettings>();
             //storm::settings::addModule<storm::settings::modules::LongRunAverageSolverSettings>();
-            //storm::settings::addModule<storm::settings::modules::MinMaxEquationSolverSettings>();
+            storm::settings::addModule<storm::settings::modules::MinMaxEquationSolverSettings>();
             storm::settings::addModule<storm::settings::modules::GameSolverSettings>();
             storm::settings::addModule<storm::settings::modules::BisimulationSettings>();
             storm::settings::addModule<storm::settings::modules::ResourceSettings>();
