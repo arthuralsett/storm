@@ -195,7 +195,7 @@ namespace storm {
             int numberOfStates,
             int capacity
         ) {
-            return getStateWithBuiltInResourceLevel(numberOfStates - 1, capacity + 1);
+            return getStateWithBuiltInResourceLevel(numberOfStates - 1, capacity + 1, capacity + 1);
         }
 
         // Returns a transition matrix with states that conceptually correspond
