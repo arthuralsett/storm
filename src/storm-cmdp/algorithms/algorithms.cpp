@@ -221,7 +221,7 @@ namespace storm {
                 for (int resLvl = 0; resLvl <= capacity; ++resLvl) {
                     const int newState = getStateWithBuiltInResourceLevel(state, resLvl, numberOfResoureLevels);
                     auto action = getNextAction(counterSelector, state, resLvl);
-                    auto cost = storm::cmdp::cost(cmdp, state, action);
+                    auto cost = storm::cmdp::cost(cmdp, state, action).getValue();
                     int nextResourceLevel = leavingReloadState ? (capacity - cost) : (resLvl - cost);
 
                     if (nextResourceLevel < 0) {
