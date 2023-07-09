@@ -42,18 +42,15 @@ namespace storm {
         // Returns the capacity of the input CMDP.
         int getCapacity(const storm::prism::Program& inputProgramme) {
             if (!inputProgramme.hasConstant("capacity")) {
-                // TODO improve error handling.
-                std::exit(EXIT_FAILURE);
+                throw storm::exceptions::BaseException("Missing constant `capacity` in input file.");
             }
             auto constantCap = inputProgramme.getConstant("capacity");
             if (!constantCap.isDefined()) {
-                // TODO improve error handling.
-                std::exit(EXIT_FAILURE);
+                throw storm::exceptions::BaseException("Constant `capacity` in input file is not defined.");
             }
             auto expr = constantCap.getExpression();
             if (!expr.hasIntegerType()) {
-                // TODO improve error handling.
-                std::exit(EXIT_FAILURE);
+                throw storm::exceptions::BaseException("Constant `capacity` in input file is not an integer.");
             }
             return expr.evaluateAsInt();
         }
@@ -62,8 +59,7 @@ namespace storm {
         storm::prism::Program getInputProgramme() {
             auto ioSettings = storm::settings::getModule<storm::settings::modules::IOSettings>();
             if (!ioSettings.isPrismInputSet()) {
-                // TODO improve error handling.
-                std::exit(EXIT_FAILURE);
+                throw storm::exceptions::BaseException("No PRISM input specified.");
             }
             auto modelFileName = ioSettings.getPrismInputFilename();
             return storm::api::parseProgram(modelFileName, false, false);
