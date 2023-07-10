@@ -286,6 +286,21 @@ namespace storm {
             }
             return stateLabelling;
         }
+
+        // Transform `cmdp` into an MDP with states that conceptually correspond
+        // to pairs (s, rl) where s is a state from `cmdp` and rl is a resource
+        // level with 0 <= rl <= `capacity`. The transitions correspond to what
+        // `counterSelector` would choose.
+        storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>
+        getMdpWithResourceLevelsBuiltIntoStates(
+            const storm::cmdp::CounterSelector& counterSelector,
+            std::shared_ptr<storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>> cmdp,
+            const int capacity
+        ) {
+            auto transitionMatrix = getTransitionMatrixAccordingToCounterSelector(counterSelector, cmdp, capacity);
+            auto stateLabelling = getStateLabellingForBuiltInResourceLevels(cmdp, capacity);
+            return {transitionMatrix, stateLabelling};
+        }
     }  // namespace cmdp
 }  // namespace storm
 
@@ -483,14 +498,7 @@ bool storm::cmdp::validateCounterSelector(
     const int numberOfStates = cmdp->getNumberOfStates();
     const int numberOfResourceLevels = capacity + 1;
 
-    // Transform `cmdp` into an MDP with states that conceptually correspond to
-    // pairs (s, rl) where s is a state from `cmdp` and rl is a resource level
-    // with 0 <= rl <= `capacity`. The transitions correspond to what
-    // `counterSelector` would choose.
-    auto transitionMatrix = getTransitionMatrixAccordingToCounterSelector(counterSelector, cmdp, capacity);
-    auto stateLabelling = getStateLabellingForBuiltInResourceLevels(cmdp, capacity);
-    storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>
-    transformedMdp(transitionMatrix, stateLabelling);
+    auto transformedMdp = getMdpWithResourceLevelsBuiltIntoStates(counterSelector, cmdp, capacity);
 
     storm::modelchecker::SparseMdpPrctlModelChecker checker(transformedMdp);
 
