@@ -9,7 +9,9 @@
 #include "storm/modelchecker/results/CheckResult.h"
 #include "storm/modelchecker/results/ExplicitQuantitativeCheckResult.h"
 #include "storm/solver/OptimizationDirection.h"
+#include "storm/storage/BitVector.h"
 #include "storm/storage/SparseMatrix.h"
+#include "storm/utility/graph.h"
 
 namespace storm {
     namespace cmdp {
@@ -323,6 +325,27 @@ namespace storm {
             }
             return resultReachTarget->asExplicitQuantitativeCheckResult<double>();
         }
+
+        // Returns a bit vector with bits set exactly for the states s such that
+        // if the agent starts in s, it never reaches `undesiredState`.
+        storm::storage::BitVector getStatesFromWhichNeverReach(
+            const storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>& mdp,
+            const int undesiredState
+        ) {
+            using BitVec = storm::storage::BitVector;
+            const int numberOfStates = mdp.getNumberOfStates();
+            BitVec statesWithProbZero(numberOfStates);
+            BitVec statesWithProbOne(numberOfStates);
+            BitVec allStatesTrue(numberOfStates, true);
+            BitVec badStates(numberOfStates, false);
+            badStates.set(undesiredState);
+            std::tie(statesWithProbZero, statesWithProbOne) = storm::utility::graph::performProb01(
+                mdp.getBackwardTransitions(),
+                allStatesTrue,
+                badStates
+            );
+            return statesWithProbZero;
+        }
     }  // namespace cmdp
 }  // namespace storm
 
@@ -522,6 +545,10 @@ bool storm::cmdp::validateCounterSelector(
     auto transformedMdp = getMdpWithResourceLevelsBuiltIntoStates(counterSelector, cmdp, capacity);
     auto resultReachTarget = getProbabilitiesForReachingTargetState(transformedMdp);
 
+    auto stateWithZeroResource = getStateWithZeroResource(numberOfStates, capacity);
+    // States for which the probability that the agent runs out of energy, is zero.
+    auto safeStates = getStatesFromWhichNeverReach(transformedMdp, stateWithZeroResource);
+
     // These two variables indicate whether the counter selector ensures that
     // for each state s with "SafePR(s)" <= `capacity`, ...
     // ... the probability of reaching target state is not zero. Assume true and
@@ -545,8 +572,9 @@ bool storm::cmdp::validateCounterSelector(
             if (targetProbability <= 0) {
                 countSelEnsuresTarget = false;
             }
-            // TODO check that probability of running out of energy is zero for
-            // states s with "SafePR(s)" < `ExtInt::infinity()`.
+            if (!safeStates.get(transformedState)) {
+                countSelEnsuresResource = false;
+            }
         }
         counterExampleForBoth = !countSelEnsuresTarget && !countSelEnsuresResource;
     }
