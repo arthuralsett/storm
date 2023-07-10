@@ -301,6 +301,28 @@ namespace storm {
             auto stateLabelling = getStateLabellingForBuiltInResourceLevels(cmdp, capacity);
             return {transitionMatrix, stateLabelling};
         }
+
+        // Returns an object with for each state the probability of reaching a
+        // state labelled "target".
+        // `transformedMdp` should be the output of
+        // `storm::cmdp::getMdpWithResourceLevelsBuiltIntoStates()`.
+        storm::modelchecker::ExplicitQuantitativeCheckResult<double> getProbabilitiesForReachingTargetState(
+            const storm::models::sparse::Mdp<double, storm::models::sparse::StandardRewardModel<double>>& transformedMdp
+        ) {
+            storm::modelchecker::SparseMdpPrctlModelChecker checker(transformedMdp);
+            auto isTarget = std::make_shared<storm::logic::AtomicLabelFormula>("target");
+            storm::logic::EventuallyFormula formulaForTarget(isTarget);
+            storm::modelchecker::CheckTask<storm::logic::EventuallyFormula> checkReachTarget(formulaForTarget);
+            // Shouldn't make a difference because there are no choices. There is only
+            // one action in each state. But some function below requires this.
+            checkReachTarget.setOptimizationDirection(storm::solver::OptimizationDirection::Maximize);
+
+            auto resultReachTarget = checker.computeReachabilityProbabilities(storm::Environment{}, checkReachTarget);
+            if (!resultReachTarget->isExplicitQuantitativeCheckResult()) {
+                throw storm::exceptions::BaseException("Expected ExplicitQuantitativeCheckResult.");
+            }
+            return resultReachTarget->asExplicitQuantitativeCheckResult<double>();
+        }
     }  // namespace cmdp
 }  // namespace storm
 
@@ -499,21 +521,7 @@ bool storm::cmdp::validateCounterSelector(
     const int numberOfResourceLevels = capacity + 1;
 
     auto transformedMdp = getMdpWithResourceLevelsBuiltIntoStates(counterSelector, cmdp, capacity);
-
-    storm::modelchecker::SparseMdpPrctlModelChecker checker(transformedMdp);
-
-    auto isTarget = std::make_shared<storm::logic::AtomicLabelFormula>("target");
-    storm::logic::EventuallyFormula formulaForTarget(isTarget);
-    storm::modelchecker::CheckTask<storm::logic::EventuallyFormula> checkReachTarget(formulaForTarget);
-    // Shouldn't make a difference because there are no choices. There is only
-    // one action in each state. But some function below requires this.
-    checkReachTarget.setOptimizationDirection(storm::solver::OptimizationDirection::Maximize);
-
-    auto genericResultReachTarget = checker.computeReachabilityProbabilities(storm::Environment{}, checkReachTarget);
-    if (!genericResultReachTarget->isExplicitQuantitativeCheckResult()) {
-        throw storm::exceptions::BaseException("Expected ExplicitQuantitativeCheckResult.");
-    }
-    auto resultReachTarget = genericResultReachTarget->asExplicitQuantitativeCheckResult<double>();
+    auto resultReachTarget = getProbabilitiesForReachingTargetState(transformedMdp);
 
     // These two variables indicate whether the counter selector ensures that
     // for each state s with "SafePR(s)" <= `capacity`, ...
