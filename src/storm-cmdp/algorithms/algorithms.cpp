@@ -516,7 +516,6 @@ bool storm::cmdp::validateCounterSelector(
     const std::vector<storm::utility::ExtendedInteger>& safePr,
     const int capacity
 ) {
-    using ExtInt = storm::utility::ExtendedInteger;
     const int numberOfStates = cmdp->getNumberOfStates();
     const int numberOfResourceLevels = capacity + 1;
 
@@ -532,7 +531,7 @@ bool storm::cmdp::validateCounterSelector(
     bool countSelEnsuresResource = true;
 
     bool counterExampleForBoth;
-    auto infinity = ExtInt::infinity();
+    auto infinity = storm::utility::ExtendedInteger::infinity();
     // Loop over states from original CMDP. Stop when we have a counter-example
     // for resource and target.
     for (int s = 0; s < numberOfStates && !counterExampleForBoth; ++s) {
