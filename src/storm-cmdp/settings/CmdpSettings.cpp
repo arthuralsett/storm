@@ -51,7 +51,7 @@ namespace storm {
             storm::settings::addModule<storm::settings::modules::GameSolverSettings>();
             storm::settings::addModule<storm::settings::modules::BisimulationSettings>();
             storm::settings::addModule<storm::settings::modules::ResourceSettings>();
-            //storm::settings::addModule<storm::settings::modules::MultiplierSettings>();
+            storm::settings::addModule<storm::settings::modules::MultiplierSettings>();
             storm::settings::addModule<storm::settings::modules::TransformationSettings>();
             //storm::settings::addModule<storm::settings::modules::OviSolverSettings>();
             //storm::settings::addModule<storm::settings::modules::TimeBoundedSolverSettings>();
