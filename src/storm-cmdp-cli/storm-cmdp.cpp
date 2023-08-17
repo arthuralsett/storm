@@ -110,21 +110,18 @@ namespace storm {
             storm::utility::TeeStream sfout(std::cout, outfile);
 
             storm::utility::Stopwatch minInitConsTimer(true);
-            auto minInitConsWrongOrder = computeMinInitCons(cmdp);
+            auto minInitCons = computeMinInitCons(cmdp);
             minInitConsTimer.stop();
-            auto minInitCons = storm::utility::undoStatePermutation(minInitConsWrongOrder, cmdp);
 
             storm::utility::Stopwatch safeTimer(true);
-            auto safeWrongOrder = computeSafe(cmdp, capacity);
+            auto safe = computeSafe(cmdp, capacity);
             safeTimer.stop();
-            auto safe = storm::utility::undoStatePermutation(safeWrongOrder, cmdp);
 
-            std::vector<ExtInt> safePrWrongOrder;
+            std::vector<ExtInt> safePr;
             storm::cmdp::CounterSelector counterSelector;
             storm::utility::Stopwatch safePrTimer(true);
-            std::tie(safePrWrongOrder, counterSelector) = computeSafePr(cmdp, capacity);
+            std::tie(safePr, counterSelector) = computeSafePr(cmdp, capacity);
             safePrTimer.stop();
-            auto safePr = storm::utility::undoStatePermutation(safePrWrongOrder, cmdp);
 
             std::cout << "capacity = " << capacity << '\n';
 
@@ -132,11 +129,10 @@ namespace storm {
             showResult(sfout, "Safe", safe, safeTimer);
             showResult(sfout, "SafePR", safePr, safePrTimer);
 
-            // Probably wrong order:
             std::cout << "counterSelector =\n";
             printCounterSelector(std::cout, counterSelector, cmdp, capacity);
 
-            bool counterSelectorGood = validateCounterSelector(counterSelector, cmdp, safePrWrongOrder, capacity);
+            bool counterSelectorGood = validateCounterSelector(counterSelector, cmdp, safePr, capacity);
             sfout << "Counter selector satisfies requirements:\n"
                 << std::boolalpha << counterSelectorGood << '\n';
         }
