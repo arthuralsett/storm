@@ -255,7 +255,6 @@ namespace storm {
             }
             // When no resource left, it stays that way forever.
             matrixBuilder.addNextValue(stateWithZeroResource, stateWithZeroResource, 1);
-            // TODO maybe call `makeRowGroupingTrivial()`.
             return matrixBuilder.build();
         }
 
@@ -502,7 +501,6 @@ std::pair<std::vector<storm::utility::ExtendedInteger>, storm::cmdp::CounterSele
                 a.at(s) = getActionMinimisingSprVal(cmdp, safe, s, safePrOldApprox);
 
                 // Take minimum of "SPR-Val" over all actions.
-                // TODO put this in separate function.
                 auto minSprVal = ExtInt::infinity();
                 for (int a = 0; a < numberOfActions; ++a) {
                     auto potentialMinSprVal = computeSprVal(cmdp, safe, s, a, safePrOldApprox);
@@ -514,7 +512,6 @@ std::pair<std::vector<storm::utility::ExtendedInteger>, storm::cmdp::CounterSele
             }
         }
         // Apply two-sided truncation operator to `safePrApprox`.
-        // TODO put this in separate function.
         for (int s = 0; s < numberOfStates; ++s) {
             if (safePrApprox.at(s) > ExtInt(capacity)) {
                 safePrApprox.at(s) = ExtInt::infinity();

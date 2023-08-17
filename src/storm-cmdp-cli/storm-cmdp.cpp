@@ -105,7 +105,6 @@ namespace storm {
             const int capacity = getCapacity(inputProgramme);
             auto cmdp = getInputCmdp(inputProgramme);
 
-            // TODO get filename from commandline arguments.
             std::ofstream outfile("storm-cmdp-output.txt");
             // "S" for "standard", "f" for "file".
             storm::utility::TeeStream sfout(std::cout, outfile);
